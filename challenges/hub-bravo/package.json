@@ -1,0 +1,13 @@
+{
+  "name": "doing-in-public",
+  "version": "1.0.0",
+  "description": "HUB Bravo Challenge",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node server.js",
+    "test": "node test.js ./*-test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
