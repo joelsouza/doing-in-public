@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Workers</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <main>
+    <section id="workers">
+      <table>
+        <thead>
+          <tr>
+            <th>Hardware concurrency</th>
+            <th>Workers running</th>
+            <th>Number of tasks to run</th>
+            <th>Missing tasks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="text-center" id="hardware-concurrency"></td>
+            <td className="text-center" id="workers-running"></td>
+            <td className="text-center" id="total-of-tasks"></td>
+            <td className="text-center" id="missing-tasks"></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <script type="text/javascript">
+    const $hardwareConcurrency = document.getElementById('hardware-concurrency');
+    const $workersRunning = document.getElementById('workers-running');
+    const $totalOfTasks = document.getElementById('total-of-tasks');
+    const $missingTasks = document.getElementById('missing-tasks');
+
+    const hardwareConcurrency = navigator.hardwareConcurrency;
+    $hardwareConcurrency.textContent = hardwareConcurrency;
+
+    const totalOfTasks = 1_000;
+    let workersRunning = navigator.serviceWorker.controller ? 1 : 0;
+    let missingTasks = totalOfTasks - workersRunning;
+    let taskNumber = 0;
+
+    function updateDashboard () {
+      $workersRunning.textContent = workersRunning;
+      $totalOfTasks.textContent = totalOfTasks;
+      $missingTasks.textContent = totalOfTasks - taskNumber;
+    }
+
+    function runLongTask () {
+      const randomDelay = Math.floor(Math.random() * 10_000);
+      const worker = new Worker('./worker.js');
+      workersRunning++;
+      taskNumber++;
+      updateDashboard();
+
+      worker.postMessage({ taskNumber, randomDelay });
+      worker.onmessage = (event) => {
+        console.log(event.data.message)
+        workersRunning--;
+        updateDashboard();
+        if (taskNumber < totalOfTasks && workersRunning < hardwareConcurrency) {
+          runLongTask();
+        }
+      };
+      if (taskNumber < totalOfTasks && workersRunning < hardwareConcurrency) {
+        runLongTask();
+      }
+    }
+
+    runLongTask();
+  </script>
+</body>
+
+</html>
